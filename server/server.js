@@ -14,7 +14,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(authApp)
-app.use(cors())
+
 
 
 app.listen(port, () => console.log(`Server running on port ${port}`))
