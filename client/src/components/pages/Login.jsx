@@ -15,13 +15,21 @@ const Login = () => {
       try {
         const response = await axios.post(`${apiUrl}/login`, loginDetails);
         if (response.data.token) {
-            const expirationTime = new Date().getTime() + 60 * 60 * 1000;
+          const expirationTime = new Date().getTime() + 60 * 60 * 1000;
           localStorage.setItem("token", response.data.token);
           localStorage.setItem("tokenExpiration", expirationTime);
+          setLoginDetails({
+            username: "",
+            password:''
+          })
           navigate("/")
         }
         else{
             alert("Invalid credentials")
+            setLoginDetails({
+              username: "",
+              password:''
+            })
             navigate("/login")
         }
         

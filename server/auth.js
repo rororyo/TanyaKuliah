@@ -12,11 +12,7 @@ const { Client } = pg;
 const authApp = express();
 authApp.use(bodyParser.json());
 authApp.use(bodyParser.urlencoded({ extended: true }));
-authApp.use(cors({
-    origin: ["http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
-}))
+
 env.config()
 const client = new Client({
     user: process.env.DB_USER,

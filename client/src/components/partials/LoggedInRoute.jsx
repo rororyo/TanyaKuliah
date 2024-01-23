@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 
 const LoggedInRoute = ({children}) => {
   function getToken() {
+
     const token = localStorage.getItem("token");
     const expirationTime = localStorage.getItem("tokenExpiration");
   
