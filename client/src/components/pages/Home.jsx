@@ -9,6 +9,7 @@ const Home = () => {
 <ul>
     <li><Link to="/college-buddy">College Buddy</Link></li>
     <li><Link to="/group-chat">Group Chat</Link></li>
+    <li><Link to="/dashboard">Dashboard</Link></li>
 </ul>
     </div>
   )

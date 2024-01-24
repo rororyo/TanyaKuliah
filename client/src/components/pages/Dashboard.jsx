@@ -10,6 +10,7 @@ const Dashboard = () => {
       localStorage.removeItem("token")
       localStorage.removeItem("tokenExpiration")
       navigate("/")
+      alert("Logout Sucessful")
     }
 catch(err){
   console.log(err)

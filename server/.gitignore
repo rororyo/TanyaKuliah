@@ -1,6 +1,7 @@
 # Node.js
 node_modules/
-
+.env
+env
 # Dependency directories
 # https://docs.npmjs.com/cli/v7/configuring-npm/package-json#files
 **/npm-debug.log
@@ -13,6 +14,7 @@ node_modules/
 **/yarn-error.log
 **/build/
 **/dist/
+
 
 # Editor files
 .vscode/
@@ -80,5 +82,6 @@ coverage/
 
 # Yarn
 yarn-error.log
+
 
 # End of file

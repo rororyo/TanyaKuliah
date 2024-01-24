@@ -1,40 +1,30 @@
 import express from "express";
-import pg from "pg";
-import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from 'cors';
-import env from 'dotenv';
 import Cookies from 'js-cookie';
-
-const { Client } = pg;
+import { dbMiddleware } from "./dbsetup.js";
+import cookieParser from 'cookie-parser';
 
 const authApp = express();
-authApp.use(bodyParser.json());
-authApp.use(bodyParser.urlencoded({ extended: true }));
 
-env.config()
-const client = new Client({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DB,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
-
-// Check for cookies
-export const isLoggedin = () => {
-    const token = Cookies.get('token');
-    return !!token;
-}
-
-await client.connect();
+authApp.use(express.json());
+authApp.use(express.urlencoded({ extended: true }));
+authApp.use(cookieParser());
+authApp.use(dbMiddleware); // Use the shared database middleware
 
 const saltRounds = 10;
+
+// Check for cookies
+export const isLoggedin = (req) => {
+    const token = req.cookies.token;
+    return !!token;
+}
 
 authApp.post("/register", async (req, res) => {
     const email = req.body.username;
     const password = req.body.password;
+    const client = req.dbClient;
 
     try {
         const checkResult = await client.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -50,6 +40,7 @@ authApp.post("/register", async (req, res) => {
             res.status(200).send({ user, token });
         }
     } catch (err) {
+        console.error('Error in registration:', err);
         res.status(500).send(err.message);
     }
 });
@@ -57,6 +48,7 @@ authApp.post("/register", async (req, res) => {
 authApp.post("/login", async (req, res) => {
     const email = req.body.username;
     const password = req.body.password;
+    const client = req.dbClient;
 
     try {
         const result = await client.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -77,19 +69,19 @@ authApp.post("/login", async (req, res) => {
             res.status(401).json({ message: "Invalid credentials" });
         }
     } catch (err) {
+        console.error('Error in login:', err);
         res.status(500).send(err.message);
     }
 });
 
 authApp.get("/logout", (req, res) => {
-  if(isLoggedin){
-    res.clearCookie("token");
-    res.send("Logout successful");
-  }
-    else{
-      res.status(401).send("Not logged in");
+    if (isLoggedin(req)) {
+
+        res.clearCookie("token");
+        res.send("Logout successful");
+    } else {
+        res.status(401).send("Not logged in");
     }
-        
 });
 
 // Helper function to generate JWT

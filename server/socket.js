@@ -13,43 +13,37 @@ export const initializeSocketIO = (server) => {
 
     io.on('connection', (socket) => {
         const authorizationHeader = socket.handshake.headers.authorization;
-
-        if (authorizationHeader && typeof authorizationHeader === 'string') {
+        
+        if (authorizationHeader) {
             const token = authorizationHeader.split(' ')[1];
-
-            if (token) {
-                try {
-                    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-                    const userId = decodedToken.user.id;
-                    socket.join(userId);
-                } catch (error) {
-                    console.error('Error verifying token:', error.message);
-                   
-                }
-            } else {
-                console.error('Token is empty');
+    
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                const userId = decoded.user.id;
+                let roomName=''
+                
+                socket.on("join_room",(data)=>{
+                    roomName = getPrivateRoomName(userId, data.recipient);
+                    socket.join(roomName);
+                    
+                })
+                socket.on("send_message", (data) => {
+                    io.to(roomName).emit('receive_message', { message: data.message, sender: userId });
+                });
+            } catch (error) {
+                console.error('Error verifying token:', error.message);
+                socket.disconnect(true);
             }
         } else {
-            console.error('Authorization header is not a string or not found');
+            console.error('Authorization header is missing');
+            socket.disconnect(true);
         }
     });
-};
-
-
-
-export const verifyToken = (req, res, next) => {
-  const token = req.cookies.token;
-
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ message: "Token invalid or expired" });
+    
+    function getPrivateRoomName(user1Id, user2Id) {
+        // This function should return a unique room name for the private conversation
+        // You can use a consistent naming convention, such as sorting user IDs and concatenating them
+        const sortedUserIds = [user1Id, user2Id].sort();
+        return `private_${sortedUserIds[0]}_${sortedUserIds[1]}`;
     }
-
-    req.user = decoded.user; // Store user information in the request object
-    next();
-  });
-};
+}

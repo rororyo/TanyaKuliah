@@ -18,7 +18,6 @@ const useSocket = (token) => {
                 'Authorization': 'Bearer ' + token,
             },
         });
-
         setSocket(newSocket);
 
         return () => newSocket.close();
