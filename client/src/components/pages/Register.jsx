@@ -5,6 +5,7 @@ import axios from 'axios'
 const Register = () => {
     const[values,setValues]=useState({
         username:"",
+        email:"",
         password:""
     })
     const navigate=useNavigate()
@@ -35,10 +36,15 @@ const Register = () => {
           <div className="card">
             <div className="card-body">
               <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                  <label htmlFor="username">username</label>
+                  <input type="username" className="form-control" name="username" 
+                  onChange={(e)=>setValues({...values,username:e.target.value})}/>
+                </div>
                 <div className="form-group">
                   <label htmlFor="email">Email</label>
-                  <input type="email" className="form-control" name="username" 
-                  onChange={(e)=>setValues({...values,username:e.target.value})}/>
+                  <input type="email" className="form-control" name="email" 
+                  onChange={(e)=>setValues({...values,email:e.target.value})}/>
                 </div>
                 <div className="form-group">
                   <label htmlFor="password">Password</label>

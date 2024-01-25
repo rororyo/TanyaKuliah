@@ -7,11 +7,13 @@ import LoggedInRoute from './components/partials/LoggedInRoute';
 import Home from './components/pages/Home';
 import CollegeBuddy from './components/pages/CollegeBuddy';
 import GroupChat from './components/pages/GroupChat';
+import InfoKuliah from './components/pages/InfoKuliah';
 
 const App = () => {
   return (
 
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -21,6 +23,7 @@ const App = () => {
         <Route path="/dashboard" element={<LoggedInRoute> <Dashboard /> </LoggedInRoute>} />
         <Route path='/college-buddy' element={<LoggedInRoute> <CollegeBuddy /> </LoggedInRoute>} />
         <Route path='/group-chat' element={<LoggedInRoute> <GroupChat /> </LoggedInRoute>} />
+        <Route path="/info-kuliah" element={<LoggedInRoute> <InfoKuliah /> </LoggedInRoute>} />
 
         {/* 404 Page */}
         <Route path="*" element={<div>Page Not Found</div>} />

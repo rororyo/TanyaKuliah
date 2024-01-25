@@ -22,7 +22,8 @@ export const isLoggedin = (req) => {
 }
 
 authApp.post("/register", async (req, res) => {
-    const email = req.body.username;
+    const email = req.body.email;
+    const username=req.body.username
     const password = req.body.password;
     const client = req.dbClient;
 
@@ -33,7 +34,7 @@ authApp.post("/register", async (req, res) => {
             res.status(400).send("User already exists");
         } else {
             const hash = await bcrypt.hash(password, saltRounds);
-            const result = await client.query("INSERT INTO users(email, password) VALUES($1, $2) RETURNING *", [email, hash]);
+            const result = await client.query("INSERT INTO users(email,username, password) VALUES($1, $2,$3) RETURNING *", [email,username, hash]);
             const user = result.rows[0];
             const token = generateToken(user);
             res.cookie("token", token);

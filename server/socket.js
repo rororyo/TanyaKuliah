@@ -19,7 +19,8 @@ export const initializeSocketIO = (server) => {
     
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET);
-                const userId = decoded.user.id;
+                const currentUsername = decoded.user.username;
+                const userId=decoded.user.id
                 let roomName=''
                 
                 socket.on("join_room",(data)=>{
@@ -28,7 +29,7 @@ export const initializeSocketIO = (server) => {
                     
                 })
                 socket.on("send_message", (data) => {
-                    io.to(roomName).emit('receive_message', { message: data.message, sender: userId });
+                    io.to(roomName).emit('receive_message', { message: data.message, sender: currentUsername });
                 });
             } catch (error) {
                 console.error('Error verifying token:', error.message);
