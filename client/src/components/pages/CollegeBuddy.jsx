@@ -1,4 +1,5 @@
-//TODO: integrate with database
+//TODO: get online status
+//TODO: implement lazy loading 
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -10,7 +11,10 @@ const CollegeBuddy = () => {
   const socket = useSocket(token);
 
   // Current user state
-  const [currentUser, setCurrentUser] = useState("");
+  const [currentUser, setCurrentUser] = useState({});
+
+  //Online users state
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   // Users state
   const [users, setUsers] = useState([]);
@@ -24,11 +28,19 @@ const CollegeBuddy = () => {
   // Message list state
   const [messages, setMessages] = useState([]);
 
-  const sendMessage = () => {
-    const newMessage = { message: message, sender: currentUser.username };
+  const sendMessage =async () => {
+    const newMessage = { message: message, sender: currentUser,recipient };
     if(message!==""){
           setMessages((prevMessages) => [...prevMessages, newMessage]);
           socket.emit("send_message", { message, recipient });
+          //save message to database
+          try{
+              await axios.post("http://localhost:4000/save-chat", newMessage, {withCredentials: true})
+          }
+          catch(err){
+              console.log(err)
+          }
+          
     }
 
     setMessage("");
@@ -40,17 +52,33 @@ const CollegeBuddy = () => {
       const { data } = await axios.get("http://localhost:4000/users", {
         withCredentials: true,
       });
-      setUsers(data);
+  
+      // Update users with online status
+      const usersWithStatus = data.map((user) => ({
+        ...user,
+        online: onlineUsers.includes(user.id),
+      }));
+  
+      setUsers(usersWithStatus);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
-
-  const joinRoom = (user) => {
+  
+  const joinRoom = async (user) => {
     setRecipient({ id: user.id, username: user.username });
     socket.emit("join_room", { recipient: user.id });
-    // will be changed to grabbing message from the database
-    setMessages([]);
+  
+    try {
+      // Fetch message history from the server
+      const response = await axios.get(`http://localhost:4000/messages/${user.id}`, { withCredentials: true });
+      const messageHistory = response.data;
+
+      // Update the messages state with the fetched message history
+      setMessages(messageHistory);
+    } catch (error) {
+      console.error("Error fetching message history:", error);
+    }
   };
 
   const getCurrentUser = async () => {
@@ -59,6 +87,7 @@ const CollegeBuddy = () => {
         withCredentials: true,
       });
       setCurrentUser(data.user);
+      
     } catch (error) {
       console.error("Error fetching current user:", error);
       return null;
@@ -66,9 +95,31 @@ const CollegeBuddy = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+   
     getCurrentUser();
   }, []);
+  //get users list
+  useEffect(() => {
+    fetchUsers();
+  }, [onlineUsers]);
+
+  //get online users
+  useEffect(() => {
+    if (socket) {
+      socket.on("online_users", (data) => {
+        // Update online users state when the 'online_users' event is received
+        setOnlineUsers(data);
+        
+      });
+    }
+    
+    // Cleanup the socket listener when the component unmounts
+    return () => {
+      if (socket) {
+        socket.off("online_users");
+      }
+    };
+  }, [socket]);
 
   // Receive Message logic
 
@@ -76,7 +127,7 @@ useEffect(() => {
   if (socket) {
     socket.on("receive_message", (data) => {
       // Check if the message is from the current user
-      if (data.sender !== currentUser.username) {
+      if (data.sender.username !== currentUser.username) {
         setMessages((prevMessages) => [
           ...prevMessages,
           { sender: data.sender, message: data.message },
@@ -101,30 +152,29 @@ useEffect(() => {
       <h1>Welcome {currentUser.username}</h1>
       {/* Display all users */}
       <h2>You are now Chatting with: {recipient.username}</h2>
-
-      <h3>Users list</h3>
-      <ul>
-        {users.map((user) => (
-          <li key={user.id}>
-            {user.username}
-            <button
-              onClick={() => joinRoom(user)}
-              className="btn btn-dark btn-sm"
-            >
-              Start chatting
-            </button>
-          </li>
-        ))}
-      </ul>
+<h3>Online Users</h3>
+<ul>
+  {users.map((user) => (
+    <li key={user.id}>
+      {user.username} - {user.online ? "Online" : "Offline"}
+      <button
+        onClick={() => joinRoom(user)}
+        className="btn btn-dark btn-sm"
+      >
+        Start chatting
+      </button>
+    </li>
+  ))}
+</ul>
       <h2>Messages:</h2>
-      {/* Display all messages */}
-      {messages.map((msg, index) => (
-        // Display each message
-        <p key={index}>
-          {msg.sender}: {msg.message}
-        </p>
-        
-      ))}
+{/* Display all messages */}
+{messages.map((msg, index) => (
+  // Display each message
+  <p key={index}>
+     {msg.sender.username===currentUser.username ? "You: " : msg.sender.username}: {msg.message}
+  </p>
+))}
+
       <input
         type="text"
         placeholder="Message..."
