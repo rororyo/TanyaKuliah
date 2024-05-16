@@ -6,7 +6,7 @@ const useSocket = (token) => {
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        // Ensure token is provided before attempting to establish a connection
+        
         if (!token) {
             console.error('Token not provided for Socket.IO connection.');
             return;

@@ -1,5 +1,7 @@
-//TODO: get online status
+//TODO: setup connects virtual currency
 //TODO: implement lazy loading 
+//TODO: Notifications
+//TODO: Make a page for undergrads
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -12,6 +14,8 @@ const CollegeBuddy = () => {
 
   // Current user state
   const [currentUser, setCurrentUser] = useState({});
+
+
 
   //Online users state
   const [onlineUsers, setOnlineUsers] = useState([]);
